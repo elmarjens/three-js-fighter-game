@@ -1,23 +1,29 @@
 import * as THREE from 'three';
+import { StreetEnvironment } from './StreetEnvironment';
+import { StyleGuide } from './StyleGuide';
 
 export class Scene {
   public scene: THREE.Scene;
   public camera: THREE.PerspectiveCamera;
   public renderer: THREE.WebGLRenderer;
+  private streetEnvironment: StreetEnvironment;
 
   constructor() {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x87CEEB);
+    // Dusk sky color for street atmosphere
+    this.scene.background = new THREE.Color(StyleGuide.colors.duskSky);
+    this.scene.fog = new THREE.Fog(StyleGuide.colors.duskSky, 20, 50);
 
     this.camera = new THREE.PerspectiveCamera(
-      45,
+      50,
       window.innerWidth / window.innerHeight,
       0.1,
       1000
     );
     
-    this.camera.position.set(0, 5, 15);
-    this.camera.lookAt(0, 0, 0);
+    // Street-level camera angle
+    this.camera.position.set(0, 3, 12);
+    this.camera.lookAt(0, 1, 0);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -26,35 +32,82 @@ export class Scene {
     document.getElementById('app')!.appendChild(this.renderer.domElement);
 
     this.setupLighting();
-    this.createGround();
+    this.createEnvironment();
     this.handleResize();
   }
 
   private setupLighting(): void {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // Ambient light for dusk atmosphere
+    const ambientLight = new THREE.AmbientLight(
+      StyleGuide.lighting.ambient.color,
+      StyleGuide.lighting.ambient.intensity
+    );
     this.scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(10, 20, 5);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.camera.left = -10;
-    directionalLight.shadow.camera.right = 10;
-    directionalLight.shadow.camera.top = 10;
-    directionalLight.shadow.camera.bottom = -10;
-    directionalLight.shadow.camera.near = 0.1;
-    directionalLight.shadow.camera.far = 50;
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
-    this.scene.add(directionalLight);
+    // Sunset directional light
+    const sunLight = new THREE.DirectionalLight(
+      StyleGuide.lighting.sun.color,
+      StyleGuide.lighting.sun.intensity
+    );
+    sunLight.position.set(
+      StyleGuide.lighting.sun.position.x,
+      StyleGuide.lighting.sun.position.y,
+      StyleGuide.lighting.sun.position.z
+    );
+    sunLight.castShadow = true;
+    sunLight.shadow.camera.left = -15;
+    sunLight.shadow.camera.right = 15;
+    sunLight.shadow.camera.top = 15;
+    sunLight.shadow.camera.bottom = -15;
+    sunLight.shadow.camera.near = 0.1;
+    sunLight.shadow.camera.far = 50;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    this.scene.add(sunLight);
+
+    // Add street lights
+    this.addStreetLights();
   }
 
-  private createGround(): void {
-    const groundGeometry = new THREE.BoxGeometry(20, 0.5, 10);
-    const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x808080 });
-    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    ground.position.y = -0.25;
-    ground.receiveShadow = true;
-    this.scene.add(ground);
+  private createEnvironment(): void {
+    // Create the street environment
+    this.streetEnvironment = new StreetEnvironment(this.scene);
+    this.streetEnvironment.create();
+  }
+
+  private addStreetLights(): void {
+    // Add street lights on both sides
+    const streetLightPositions = [
+      { x: -8, z: -5 },
+      { x: -8, z: 5 },
+      { x: 8, z: -5 },
+      { x: 8, z: 5 }
+    ];
+
+    streetLightPositions.forEach(pos => {
+      const light = new THREE.PointLight(
+        StyleGuide.lighting.streetLights.color,
+        StyleGuide.lighting.streetLights.intensity,
+        StyleGuide.lighting.streetLights.distance,
+        StyleGuide.lighting.streetLights.decay
+      );
+      light.position.set(pos.x, 4, pos.z);
+      light.castShadow = true;
+      light.shadow.mapSize.width = 1024;
+      light.shadow.mapSize.height = 1024;
+      this.scene.add(light);
+
+      // Add visible light fixture
+      const fixtureGeometry = new THREE.SphereGeometry(0.3, 8, 8);
+      const fixtureMaterial = new THREE.MeshBasicMaterial({
+        color: StyleGuide.lighting.streetLights.color,
+        emissive: StyleGuide.lighting.streetLights.color,
+        emissiveIntensity: 1
+      });
+      const fixture = new THREE.Mesh(fixtureGeometry, fixtureMaterial);
+      fixture.position.copy(light.position);
+      this.scene.add(fixture);
+    });
   }
 
   private handleResize(): void {

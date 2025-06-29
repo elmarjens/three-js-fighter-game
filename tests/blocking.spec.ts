@@ -53,12 +53,11 @@ test.describe('Blocking Mechanics', () => {
     await page.keyboard.down('b');
     await page.waitForTimeout(200);
     
-    // Check if player has blocking visual (blue emissive)
+    // Check if player is in blocking state
     const isBlocking = await page.evaluate(() => {
       const game = (window as any).game;
       if (game && game.player1) {
-        const material = game.player1.mesh.material;
-        return material.emissive.getHex() === 0x0088ff;
+        return game.player1.isBlocking;
       }
       return false;
     });
