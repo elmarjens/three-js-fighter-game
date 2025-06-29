@@ -42,7 +42,7 @@ test.describe('Fighter Game', () => {
     await page.waitForTimeout(1000);
     
     // Jump
-    await page.keyboard.press(' ');
+    await page.keyboard.press('w');
     await page.waitForTimeout(300);
     await page.screenshot({ path: 'tests/screenshots/player1-jumping.png' });
   });
@@ -51,22 +51,29 @@ test.describe('Fighter Game', () => {
     await page.goto('/');
     await page.waitForTimeout(1000);
     
-    // Move player 1 right to get closer to player 2
-    await page.keyboard.down('d');
-    await page.waitForTimeout(1500); // Move for longer
-    await page.keyboard.up('d');
+    // Position players close together for reliable testing
+    await page.evaluate(() => {
+      const game = (window as any).game;
+      if (game) {
+        game.player1.mesh.position.x = 0;
+        game.player2.mesh.position.x = 1.5;
+        game.player1.facingRight = true;
+        // Reset velocities to ensure no movement
+        game.player1.velocity.set(0, 0, 0);
+        game.player2.velocity.set(0, 0, 0);
+      }
+    });
     
-    // Move player 2 left to get even closer
-    await page.keyboard.down('ArrowLeft');
-    await page.waitForTimeout(500);
-    await page.keyboard.up('ArrowLeft');
+    await page.waitForTimeout(100);
     
     // Take screenshot before attack
     await page.screenshot({ path: 'tests/screenshots/before-attack.png' });
     
     // Player 1 attacks
-    await page.keyboard.press('j');
-    await page.waitForTimeout(700); // Wait for attack animation
+    await page.keyboard.down('v');
+    await page.waitForTimeout(100);
+    await page.keyboard.up('v');
+    await page.waitForTimeout(600); // Wait for attack animation
     
     // Take screenshot after attack
     await page.screenshot({ path: 'tests/screenshots/after-attack.png' });
@@ -83,19 +90,39 @@ test.describe('Fighter Game', () => {
     await page.goto('/');
     await page.waitForTimeout(1000);
     
-    // Move players very close together
-    await page.keyboard.down('d');
-    await page.waitForTimeout(1500);
-    await page.keyboard.up('d');
+    // Position players close together
+    await page.evaluate(() => {
+      const game = (window as any).game;
+      if (game) {
+        game.player1.mesh.position.x = 0;
+        game.player2.mesh.position.x = 1.5;
+        game.player1.facingRight = true;
+        // Reset velocities to ensure no movement
+        game.player1.velocity.set(0, 0, 0);
+        game.player2.velocity.set(0, 0, 0);
+      }
+    });
     
-    await page.keyboard.down('ArrowLeft');
-    await page.waitForTimeout(800);
-    await page.keyboard.up('ArrowLeft');
+    await page.waitForTimeout(100);
     
     // Attack multiple times to defeat player 2 (100 health / 10 damage = 10 attacks)
-    for (let i = 0; i < 11; i++) { // Extra attack to ensure defeat
-      await page.keyboard.press('j');
-      await page.waitForTimeout(700); // Wait for cooldown
+    for (let i = 0; i < 10; i++) {
+      // Reposition players before each attack to account for knockback
+      await page.evaluate(() => {
+        const game = (window as any).game;
+        if (game) {
+          game.player1.mesh.position.x = 0;
+          game.player2.mesh.position.x = 1.5;
+          game.player1.velocity.set(0, 0, 0);
+          game.player2.velocity.set(0, 0, 0);
+        }
+      });
+      
+      await page.waitForTimeout(100); // Wait for positions to update
+      await page.keyboard.down('v');
+      await page.waitForTimeout(100);
+      await page.keyboard.up('v');
+      await page.waitForTimeout(500); // Wait for cooldown
       
       // Log health for debugging
       const health = await page.locator('#player2-health').evaluate(el => el.style.width);
@@ -164,7 +191,7 @@ test.describe('Fighter Game', () => {
     await page.waitForTimeout(300);
     
     // Player 2 attack
-    await page.keyboard.press('1');
+    await page.keyboard.press('k');
     await page.screenshot({ path: 'tests/screenshots/player2-controls.png' });
   });
 });

@@ -55,6 +55,49 @@
         display: none;
         z-index: 20;
       }
+      .controls-display {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 50px;
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 20px;
+        border-radius: 10px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+      }
+      .player-controls {
+        color: white;
+        text-align: center;
+      }
+      .player-controls h3 {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      }
+      .control-item {
+        margin: 5px 0;
+        font-size: 14px;
+      }
+      .control-key {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-weight: bold;
+        margin-right: 5px;
+        min-width: 20px;
+      }
+      .controls-toggle-hint {
+        position: absolute;
+        bottom: 5px;
+        right: 10px;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 12px;
+        z-index: 10;
+      }
     </style>
   </head>
   <body>
@@ -74,6 +117,48 @@
         </div>
       </div>
       <div class="game-message" id="game-message"></div>
+      
+      <div class="controls-display" id="controls-display">
+        <div class="player-controls">
+          <h3>Player 1 (Blue)</h3>
+          <div class="control-item">
+            <span class="control-key">A</span> Move Left
+          </div>
+          <div class="control-item">
+            <span class="control-key">D</span> Move Right
+          </div>
+          <div class="control-item">
+            <span class="control-key">W</span> Jump
+          </div>
+          <div class="control-item">
+            <span class="control-key">V</span> Attack
+          </div>
+          <div class="control-item">
+            <span class="control-key">B</span> Block
+          </div>
+        </div>
+        
+        <div class="player-controls">
+          <h3>Player 2 (Red)</h3>
+          <div class="control-item">
+            <span class="control-key">←</span> Move Left
+          </div>
+          <div class="control-item">
+            <span class="control-key">→</span> Move Right
+          </div>
+          <div class="control-item">
+            <span class="control-key">↑</span> Jump
+          </div>
+          <div class="control-item">
+            <span class="control-key">K</span> Attack
+          </div>
+          <div class="control-item">
+            <span class="control-key">L</span> Block
+          </div>
+        </div>
+      </div>
+      
+      <div class="controls-toggle-hint">Press H to toggle controls</div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

@@ -8,18 +8,20 @@ export class Fighter {
   public velocity: THREE.Vector3;
   public isGrounded: boolean = true;
   public isAttacking: boolean = false;
+  public isBlocking: boolean = false;
   public attackCooldown: number = 0;
   public facingRight: boolean;
   public hitbox: THREE.Box3;
   public attackHitbox: THREE.Box3;
   public playerNumber: number;
+  public hasHitThisAttack: boolean = false;
   private debugMesh?: THREE.Mesh; // For visualizing attack hitbox
 
   private readonly MOVE_SPEED = 0.15;
   private readonly JUMP_FORCE = 0.4;
   private readonly GRAVITY = -0.02;
   private readonly GROUND_Y = 1;
-  private readonly ATTACK_RANGE = 2.0;
+  private readonly ATTACK_RANGE = 1.0;
   private readonly ATTACK_DURATION = 0.3;
   private readonly ATTACK_COOLDOWN = 0.5;
 
@@ -41,6 +43,7 @@ export class Fighter {
   }
 
   public update(input: PlayerInput, deltaTime: number): void {
+    this.handleBlocking(input);
     this.handleMovement(input);
     this.handleAttack(input);
     this.applyPhysics();
@@ -50,11 +53,34 @@ export class Fighter {
       this.attackCooldown -= deltaTime;
       if (this.attackCooldown <= 0) {
         this.isAttacking = false;
+        this.hasHitThisAttack = false;
       }
+    }
+    
+    // Visual feedback for attacking and blocking
+    if (this.isAttacking) {
+      (this.mesh.material as THREE.MeshPhongMaterial).emissive = new THREE.Color(0xffff00);
+      (this.mesh.material as THREE.MeshPhongMaterial).emissiveIntensity = 0.3;
+    } else if (this.isBlocking) {
+      (this.mesh.material as THREE.MeshPhongMaterial).emissive = new THREE.Color(0x0088ff);
+      (this.mesh.material as THREE.MeshPhongMaterial).emissiveIntensity = 0.2;
+    } else {
+      (this.mesh.material as THREE.MeshPhongMaterial).emissive = new THREE.Color(0x000000);
+      (this.mesh.material as THREE.MeshPhongMaterial).emissiveIntensity = 0;
     }
   }
 
+  private handleBlocking(input: PlayerInput): void {
+    this.isBlocking = input.block && !this.isAttacking && this.isGrounded;
+  }
+
   private handleMovement(input: PlayerInput): void {
+    // Can't move while blocking
+    if (this.isBlocking) {
+      this.velocity.x *= 0.8;
+      return;
+    }
+    
     if (input.left) {
       this.velocity.x = -this.MOVE_SPEED;
       this.facingRight = false;
@@ -72,9 +98,11 @@ export class Fighter {
   }
 
   private handleAttack(input: PlayerInput): void {
-    if (input.punch && this.attackCooldown <= 0 && !this.isAttacking) {
+    // Can't attack while blocking
+    if (input.punch && this.attackCooldown <= 0 && !this.isAttacking && !this.isBlocking) {
       this.isAttacking = true;
       this.attackCooldown = this.ATTACK_COOLDOWN;
+      this.hasHitThisAttack = false;
     }
   }
 
@@ -102,7 +130,7 @@ export class Fighter {
       
       this.attackHitbox.setFromCenterAndSize(
         attackCenter,
-        new THREE.Vector3(1, 1, 1)
+        new THREE.Vector3(1.5, 2, 1)
       );
     } else {
       this.attackHitbox.makeEmpty();
@@ -110,11 +138,15 @@ export class Fighter {
   }
 
   public takeDamage(damage: number): void {
-    this.health = Math.max(0, this.health - damage);
+    // Apply damage reduction if blocking (50% reduction)
+    const actualDamage = this.isBlocking ? damage * 0.5 : damage;
+    this.health = Math.max(0, this.health - actualDamage);
     
+    // Reduced knockback when blocking
+    const knockbackMultiplier = this.isBlocking ? 0.5 : 1.0;
     const knockbackDirection = this.facingRight ? -0.3 : 0.3;
-    this.velocity.x = knockbackDirection;
-    this.velocity.y = 0.1;
+    this.velocity.x = knockbackDirection * knockbackMultiplier;
+    this.velocity.y = 0.1 * knockbackMultiplier;
   }
 
   public reset(position: THREE.Vector3): void {
@@ -122,7 +154,9 @@ export class Fighter {
     this.velocity.set(0, 0, 0);
     this.health = this.maxHealth;
     this.isAttacking = false;
+    this.isBlocking = false;
     this.attackCooldown = 0;
     this.isGrounded = true;
+    this.hasHitThisAttack = false;
   }
 }

@@ -24,6 +24,9 @@ export class Game {
     this.scene.scene.add(this.player2.mesh);
     
     this.setupRestartListener();
+    
+    // Expose game instance for debugging
+    (window as any).game = this;
   }
 
   public start(): void {
@@ -52,21 +55,18 @@ export class Game {
   }
 
   private checkCombat(): void {
-    // Check if player 1's attack hits player 2
-    if (this.player1.isAttacking && this.player1.attackCooldown > 0.2) {
-      // Only check for hit during the active part of the attack
-      if (this.player1.attackHitbox.intersectsBox(this.player2.hitbox)) {
-        this.player2.takeDamage(10);
-        this.player1.attackCooldown = 0.2; // Prevent multiple hits
-      }
+    if (this.player1.isAttacking && 
+        this.player1.attackHitbox.intersectsBox(this.player2.hitbox) &&
+        !this.player1.hasHitThisAttack) {
+      this.player2.takeDamage(10);
+      this.player1.hasHitThisAttack = true;
     }
     
-    // Check if player 2's attack hits player 1
-    if (this.player2.isAttacking && this.player2.attackCooldown > 0.2) {
-      if (this.player2.attackHitbox.intersectsBox(this.player1.hitbox)) {
-        this.player1.takeDamage(10);
-        this.player2.attackCooldown = 0.2; // Prevent multiple hits
-      }
+    if (this.player2.isAttacking && 
+        this.player2.attackHitbox.intersectsBox(this.player1.hitbox) &&
+        !this.player2.hasHitThisAttack) {
+      this.player1.takeDamage(10);
+      this.player2.hasHitThisAttack = true;
     }
   }
 
