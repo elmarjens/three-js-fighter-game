@@ -122,7 +122,7 @@ test.describe('Fighter Game', () => {
       await page.keyboard.down('v');
       await page.waitForTimeout(100);
       await page.keyboard.up('v');
-      await page.waitForTimeout(500); // Wait for cooldown
+      await page.waitForTimeout(900); // Wait for cooldown (800ms + buffer)
       
       // Log health for debugging
       const health = await page.locator('#player2-health').evaluate(el => el.style.width);

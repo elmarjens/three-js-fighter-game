@@ -1,11 +1,14 @@
 import * as THREE from 'three';
 import { StreetEnvironment } from './StreetEnvironment';
 import { StyleGuide } from './StyleGuide';
+import { DynamicCamera } from './DynamicCamera';
+import { Fighter } from '../fighters/Fighter';
 
 export class Scene {
   public scene: THREE.Scene;
   public camera: THREE.PerspectiveCamera;
   public renderer: THREE.WebGLRenderer;
+  public dynamicCamera: DynamicCamera;
   private streetEnvironment: StreetEnvironment;
 
   constructor() {
@@ -21,9 +24,9 @@ export class Scene {
       1000
     );
     
-    // Street-level camera angle
-    this.camera.position.set(0, 3, 12);
-    this.camera.lookAt(0, 1, 0);
+    // Initialize dynamic camera
+    this.dynamicCamera = new DynamicCamera(this.camera);
+    this.dynamicCamera.reset();
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -120,5 +123,13 @@ export class Scene {
 
   public render(): void {
     this.renderer.render(this.scene, this.camera);
+  }
+  
+  public updateCamera(player1: Fighter, player2: Fighter, deltaTime: number): void {
+    this.dynamicCamera.update(player1, player2, deltaTime);
+  }
+  
+  public shakeCamera(intensity: number = 0.5): void {
+    this.dynamicCamera.shake(intensity);
   }
 }
