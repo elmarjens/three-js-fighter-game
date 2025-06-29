@@ -40,9 +40,8 @@ test.describe('Blocking Mechanics', () => {
       return parseFloat(el.style.width);
     });
     
-    // With blocking, should take 5 damage instead of 10 (50% reduction)
-    const expectedHealth = initialHealth - 5;
-    expect(healthAfterBlockedAttack).toBe(expectedHealth);
+    // With full blocking, should take 0 damage when stamina is available
+    expect(healthAfterBlockedAttack).toBe(initialHealth);
   });
 
   test('blocking visual feedback', async ({ page }) => {
@@ -115,5 +114,86 @@ test.describe('Blocking Mechanics', () => {
     
     await page.keyboard.up('b');
     await page.keyboard.up('d');
+  });
+
+  test('blocking drains stamina', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(1000);
+    
+    // Get initial stamina
+    const initialStamina = await page.locator('#player1-stamina').evaluate(el => {
+      return parseFloat(el.style.width);
+    });
+    expect(initialStamina).toBe(100);
+    
+    // Block for 1 second
+    await page.keyboard.down('b');
+    await page.waitForTimeout(1000);
+    await page.keyboard.up('b');
+    
+    // Check stamina has decreased
+    const staminaAfterBlocking = await page.locator('#player1-stamina').evaluate(el => {
+      return parseFloat(el.style.width);
+    });
+    
+    // Should have lost roughly 25 stamina (25 per second)
+    expect(staminaAfterBlocking).toBeLessThan(initialStamina);
+    expect(staminaAfterBlocking).toBeGreaterThan(70);
+    expect(staminaAfterBlocking).toBeLessThan(80);
+  });
+
+  test('stamina regenerates when not blocking', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(1000);
+    
+    // First drain some stamina by attacking
+    await page.keyboard.down('v');
+    await page.waitForTimeout(100);
+    await page.keyboard.up('v');
+    await page.waitForTimeout(100);
+    
+    const staminaAfterAction = await page.locator('#player1-stamina').evaluate(el => {
+      return parseFloat(el.style.width);
+    });
+    
+    // Should have lost stamina from attack
+    expect(staminaAfterAction).toBeLessThan(100);
+    
+    // Wait for regeneration
+    await page.waitForTimeout(1000);
+    
+    const staminaAfterRegen = await page.locator('#player1-stamina').evaluate(el => {
+      return parseFloat(el.style.width);
+    });
+    
+    // Should have regenerated some stamina (15 per second)
+    expect(staminaAfterRegen).toBeGreaterThan(staminaAfterAction);
+  });
+
+  test('cannot block without stamina', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(1000);
+    
+    // Drain all stamina first
+    await page.evaluate(() => {
+      const game = (window as any).game;
+      if (game) {
+        game.player1.stamina = 0;
+      }
+    });
+    
+    // Try to block
+    await page.keyboard.down('b');
+    await page.waitForTimeout(100);
+    
+    // Check if player is NOT blocking
+    const isBlocking = await page.evaluate(() => {
+      const game = (window as any).game;
+      return game?.player1?.isBlocking || false;
+    });
+    
+    expect(isBlocking).toBe(false);
+    
+    await page.keyboard.up('b');
   });
 });

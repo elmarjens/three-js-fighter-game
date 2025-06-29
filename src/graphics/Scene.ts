@@ -9,7 +9,7 @@ export class Scene {
   public camera: THREE.PerspectiveCamera;
   public renderer: THREE.WebGLRenderer;
   public dynamicCamera: DynamicCamera;
-  private streetEnvironment: StreetEnvironment;
+  public streetEnvironment: StreetEnvironment;
 
   constructor() {
     this.scene = new THREE.Scene();
@@ -40,17 +40,25 @@ export class Scene {
   }
 
   private setupLighting(): void {
-    // Ambient light for dusk atmosphere
+    // Enhanced ambient light for PBR materials
     const ambientLight = new THREE.AmbientLight(
       StyleGuide.lighting.ambient.color,
-      StyleGuide.lighting.ambient.intensity
+      StyleGuide.lighting.ambient.intensity * 0.8
     );
     this.scene.add(ambientLight);
+    
+    // Add hemisphere light for more realistic ambient lighting
+    const hemisphereLight = new THREE.HemisphereLight(
+      0x87ceeb, // Sky color
+      0x362712, // Ground color
+      0.3
+    );
+    this.scene.add(hemisphereLight);
 
-    // Sunset directional light
+    // Enhanced sunset directional light with better shadows
     const sunLight = new THREE.DirectionalLight(
       StyleGuide.lighting.sun.color,
-      StyleGuide.lighting.sun.intensity
+      StyleGuide.lighting.sun.intensity * 1.2
     );
     sunLight.position.set(
       StyleGuide.lighting.sun.position.x,
@@ -64,16 +72,28 @@ export class Scene {
     sunLight.shadow.camera.bottom = -15;
     sunLight.shadow.camera.near = 0.1;
     sunLight.shadow.camera.far = 50;
-    sunLight.shadow.mapSize.width = 2048;
-    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.mapSize.width = 4096;
+    sunLight.shadow.mapSize.height = 4096;
+    sunLight.shadow.bias = -0.0005;
+    sunLight.shadow.normalBias = 0.02;
     this.scene.add(sunLight);
+    
+    // Add fill light for better character illumination
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight.position.set(-5, 5, 5);
+    this.scene.add(fillLight);
+    
+    // Add rim light for character definition
+    const rimLight = new THREE.DirectionalLight(0xfff5f0, 0.3);
+    rimLight.position.set(0, 3, -8);
+    this.scene.add(rimLight);
 
     // Add street lights
     this.addStreetLights();
   }
 
   private createEnvironment(): void {
-    // Create the street environment
+    // Create the street environment with platforms
     this.streetEnvironment = new StreetEnvironment(this.scene);
     this.streetEnvironment.create();
   }

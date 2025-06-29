@@ -74,6 +74,60 @@ export const StyleGuide = {
     }
   },
   
+  // Realistic Human Proportions (for realistic mode)
+  realisticCharacter: {
+    // Realistic teenage fighter proportions
+    bodyRatio: {
+      headSize: 0.24,      // Realistic head size (1/7.5 of height)
+      bodyWidth: 0.45,     // Athletic build
+      bodyHeight: 1.2,     // Proper torso length
+      armLength: 1.1,      // Full arm reach
+      armWidth: 0.15,      // Muscular but not bulky
+      legLength: 1.2,      // Proper leg proportions
+      legWidth: 0.18,      // Athletic legs
+      shoulderWidth: 0.5,  // Broad shoulders
+      hipWidth: 0.35,      // Realistic hip width
+      neckLength: 0.15,    // Proper neck
+      waistWidth: 0.32     // Athletic waist
+    },
+    
+    // Detailed features for realism
+    features: {
+      eyeSize: 0.03,       // Realistic eye size
+      eyeSpacing: 0.065,   // One eye width apart
+      pupilSize: 0.015,    // Detailed pupils
+      irisSize: 0.02,      // Iris diameter
+      noseLength: 0.05,    // Proper nose
+      noseWidth: 0.035,    // Nose width
+      mouthWidth: 0.08,    // Natural mouth
+      lipThickness: 0.01,  // Lip detail
+      earSize: 0.07,       // Realistic ears
+      handLength: 0.19,    // From wrist to fingertips
+      fingerSegments: 3,   // Finger joints
+      footLength: 0.25,    // Realistic foot size
+      
+      // Face detail positions (relative to head center)
+      eyeHeight: 0.0,      // Eyes at center
+      noseHeight: -0.08,   // Below eyes
+      mouthHeight: -0.15,  // Below nose
+      earHeight: 0.0,      // Aligned with eyes
+      
+      // Body muscle definition
+      pectoralDefinition: 0.03,
+      abdominalRows: 3,    // Six-pack potential
+      bicepBulge: 0.02,
+      calfDefinition: 0.02
+    },
+    
+    // Skeletal structure for proper deformation
+    skeleton: {
+      spine: 3,            // Spine segments
+      fingerBones: 3,      // Per finger
+      toeBones: 2,         // Per toe
+      neckVertebrae: 2     // Neck flexibility
+    }
+  },
+  
   // Environment Scale
   environment: {
     streetWidth: 20,
@@ -114,6 +168,44 @@ export const StyleGuide = {
       trashCan: 0.7,
       streetSign: 0.8,
       car: 0.6
+    },
+    
+    // Realistic material properties
+    realistic: {
+      skin: {
+        roughness: 0.7,
+        metalness: 0.0,
+        subsurfaceIntensity: 0.15,
+        clearcoat: 0.1,
+        sheen: 0.3
+      },
+      fabric: {
+        roughness: 0.85,
+        metalness: 0.0,
+        sheen: 0.2
+      },
+      leather: {
+        roughness: 0.6,
+        metalness: 0.1,
+        clearcoat: 0.3
+      },
+      hair: {
+        roughness: 0.65,
+        metalness: 0.0,
+        anisotropy: 0.8
+      },
+      eye: {
+        roughness: 0.1,
+        metalness: 0.0,
+        transmission: 0.9,
+        ior: 1.376,  // Index of refraction for cornea
+        clearcoat: 1.0
+      },
+      teeth: {
+        roughness: 0.2,
+        metalness: 0.0,
+        clearcoat: 0.5
+      }
     }
   },
   

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Scene } from '../graphics/Scene';
 import { InputManager } from './InputManager';
-import { Fighter } from '../fighters/Fighter';
+import { Fighter, CharacterStyle } from '../fighters/Fighter';
 import { AttackEffects } from '../effects/AttackEffects';
 import { ParticleEffects } from '../effects/ParticleEffects';
 
@@ -19,6 +19,8 @@ export class Game {
   private player2WasAttacking: boolean = false;
   private player1WasGrounded: boolean = true;
   private player2WasGrounded: boolean = true;
+  private platformSystem: any;
+  private characterStyle: CharacterStyle = 'realistic'; // Change to 'cartoon' for cartoon style
   
   constructor() {
     this.scene = new Scene();
@@ -27,11 +29,14 @@ export class Game {
     this.attackEffects = new AttackEffects(this.scene.scene);
     this.particleEffects = new ParticleEffects(this.scene.scene);
     
-    this.player1 = new Fighter(new THREE.Vector3(-3, 1, 0), 0x0000ff, 1);
-    this.player2 = new Fighter(new THREE.Vector3(3, 1, 0), 0xff0000, 2);
+    this.player1 = new Fighter(new THREE.Vector3(-3, 0.5, 0), 0x0000ff, 1, this.characterStyle);
+    this.player2 = new Fighter(new THREE.Vector3(3, 0.5, 0), 0xff0000, 2, this.characterStyle);
     
     this.scene.scene.add(this.player1.mesh);
     this.scene.scene.add(this.player2.mesh);
+    
+    // Get platform system from street environment
+    this.platformSystem = (this.scene as any).streetEnvironment?.platformSystem;
     
     this.setupRestartListener();
     
@@ -56,8 +61,8 @@ export class Game {
   };
 
   private update(deltaTime: number): void {
-    this.player1.update(this.inputManager.player1Input, deltaTime);
-    this.player2.update(this.inputManager.player2Input, deltaTime);
+    this.player1.update(this.inputManager.player1Input, deltaTime, this.platformSystem);
+    this.player2.update(this.inputManager.player2Input, deltaTime, this.platformSystem);
     
     // Update dynamic camera
     this.scene.updateCamera(this.player1, this.player2, deltaTime);
@@ -134,9 +139,13 @@ export class Game {
   private updateUI(): void {
     const player1HealthBar = document.getElementById('player1-health')!;
     const player2HealthBar = document.getElementById('player2-health')!;
+    const player1StaminaBar = document.getElementById('player1-stamina')!;
+    const player2StaminaBar = document.getElementById('player2-stamina')!;
     
     player1HealthBar.style.width = `${(this.player1.health / this.player1.maxHealth) * 100}%`;
     player2HealthBar.style.width = `${(this.player2.health / this.player2.maxHealth) * 100}%`;
+    player1StaminaBar.style.width = `${(this.player1.stamina / this.player1.maxStamina) * 100}%`;
+    player2StaminaBar.style.width = `${(this.player2.stamina / this.player2.maxStamina) * 100}%`;
   }
 
   private checkWinCondition(): void {
@@ -175,8 +184,8 @@ export class Game {
     this.gameOver = false;
     this.winner = 0;
     
-    this.player1.reset(new THREE.Vector3(-3, 1, 0));
-    this.player2.reset(new THREE.Vector3(3, 1, 0));
+    this.player1.reset(new THREE.Vector3(-3, 0.5, 0));
+    this.player2.reset(new THREE.Vector3(3, 0.5, 0));
     
     // Reset camera
     this.scene.dynamicCamera.reset();

@@ -8,14 +8,14 @@ export class DynamicCamera {
   private targetLookAt: THREE.Vector3;
   private currentLookAt: THREE.Vector3;
   
-  // Camera settings
-  private readonly MIN_DISTANCE = 8;
-  private readonly MAX_DISTANCE = 15;
-  private readonly MIN_HEIGHT = 2.5;
-  private readonly MAX_HEIGHT = 4;
+  // Camera settings (adjusted for larger area)
+  private readonly MIN_DISTANCE = 10;
+  private readonly MAX_DISTANCE = 20;
+  private readonly MIN_HEIGHT = 3;
+  private readonly MAX_HEIGHT = 8;
   private readonly CAMERA_SMOOTHING = 0.05;
   private readonly LOOK_SMOOTHING = 0.08;
-  private readonly CAMERA_OFFSET_Y = 1.5;
+  private readonly CAMERA_OFFSET_Y = 2;
   
   // Shake effect
   private shakeIntensity: number = 0;
@@ -23,9 +23,9 @@ export class DynamicCamera {
   
   constructor(camera: THREE.PerspectiveCamera) {
     this.camera = camera;
-    this.basePosition = new THREE.Vector3(0, 3, 12);
+    this.basePosition = new THREE.Vector3(0, 5, 18);
     this.targetPosition = this.basePosition.clone();
-    this.targetLookAt = new THREE.Vector3(0, 1, 0);
+    this.targetLookAt = new THREE.Vector3(0, 2, 0);
     this.currentLookAt = this.targetLookAt.clone();
   }
   
@@ -34,11 +34,13 @@ export class DynamicCamera {
     const centerX = (player1.mesh.position.x + player2.mesh.position.x) / 2;
     const centerY = (player1.mesh.position.y + player2.mesh.position.y) / 2;
     
-    // Calculate distance between fighters
-    const distance = Math.abs(player1.mesh.position.x - player2.mesh.position.x);
+    // Calculate distance between fighters (including vertical)
+    const horizontalDistance = Math.abs(player1.mesh.position.x - player2.mesh.position.x);
+    const verticalDistance = Math.abs(player1.mesh.position.y - player2.mesh.position.y);
+    const distance = Math.sqrt(horizontalDistance * horizontalDistance + verticalDistance * verticalDistance);
     
     // Calculate camera distance based on fighter separation
-    const normalizedDistance = Math.min(distance / 10, 1);
+    const normalizedDistance = Math.min(distance / 15, 1);
     const cameraDistance = THREE.MathUtils.lerp(
       this.MIN_DISTANCE,
       this.MAX_DISTANCE,
@@ -59,8 +61,8 @@ export class DynamicCamera {
       cameraDistance
     );
     
-    // Set target look at position (slightly above center)
-    this.targetLookAt.set(centerX, centerY + 0.5, 0);
+    // Set target look at position (adjusted for vertical gameplay)
+    this.targetLookAt.set(centerX, centerY + 1, 0);
     
     // Apply camera shake if active
     if (this.shakeIntensity > 0.01) {
@@ -97,16 +99,16 @@ export class DynamicCamera {
   public setDramaticAngle(type: 'victory' | 'knockout' | 'special'): void {
     switch (type) {
       case 'victory':
-        this.targetPosition.set(3, 2, 8);
-        this.targetLookAt.set(0, 1.5, 0);
+        this.targetPosition.set(3, 4, 12);
+        this.targetLookAt.set(0, 2, 0);
         break;
       case 'knockout':
-        this.targetPosition.set(-2, 0.5, 6);
-        this.targetLookAt.set(0, 0.5, 0);
+        this.targetPosition.set(-2, 1, 8);
+        this.targetLookAt.set(0, 1, 0);
         break;
       case 'special':
-        this.targetPosition.set(0, 5, 10);
-        this.targetLookAt.set(0, 1, 0);
+        this.targetPosition.set(0, 8, 15);
+        this.targetLookAt.set(0, 3, 0);
         break;
     }
   }

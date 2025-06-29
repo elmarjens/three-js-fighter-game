@@ -2,6 +2,7 @@ export interface PlayerInput {
   left: boolean;
   right: boolean;
   jump: boolean;
+  down: boolean;
   punch: boolean;
   block: boolean;
 }
@@ -13,6 +14,7 @@ export class InputManager {
     left: false,
     right: false,
     jump: false,
+    down: false,
     punch: false,
     block: false
   };
@@ -21,6 +23,7 @@ export class InputManager {
     left: false,
     right: false,
     jump: false,
+    down: false,
     punch: false,
     block: false
   };
@@ -60,12 +63,14 @@ export class InputManager {
     this.player1Input.left = this.keys['a'] || false;
     this.player1Input.right = this.keys['d'] || false;
     this.player1Input.jump = this.keys['w'] || false;
+    this.player1Input.down = this.keys['s'] || false;
     this.player1Input.punch = this.keys['v'] || false;
     this.player1Input.block = this.keys['b'] || false;
 
     this.player2Input.left = this.keys['arrowleft'] || false;
     this.player2Input.right = this.keys['arrowright'] || false;
     this.player2Input.jump = this.keys['arrowup'] || false;
+    this.player2Input.down = this.keys['arrowdown'] || false;
     this.player2Input.punch = this.keys['k'] || false;
     this.player2Input.block = this.keys['l'] || false;
   }

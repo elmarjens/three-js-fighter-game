@@ -22,7 +22,9 @@ export class StreetEnvironment {
   }
 
   private createStreet(): void {
-    const { streetWidth, streetDepth } = StyleGuide.environment;
+    // Expanded street dimensions
+    const streetWidth = 30; // Increased from 20
+    const streetDepth = 20; // Increased from 15
     
     // Main street asphalt with toon shading
     const streetGeometry = new THREE.BoxGeometry(streetWidth, 0.1, streetDepth);
@@ -54,9 +56,9 @@ export class StreetEnvironment {
       );
       const crack = new THREE.Mesh(crackGeometry, crackMaterial);
       crack.position.set(
-        (Math.random() - 0.5) * StyleGuide.environment.streetWidth * 0.8,
+        (Math.random() - 0.5) * 24,
         0,
-        (Math.random() - 0.5) * StyleGuide.environment.streetDepth * 0.8
+        (Math.random() - 0.5) * 16
       );
       crack.rotation.y = Math.random() * Math.PI;
       this.group.add(crack);
@@ -72,7 +74,7 @@ export class StreetEnvironment {
     });
 
     // Create dashed center line
-    const totalLength = StyleGuide.environment.streetDepth;
+    const totalLength = 20; // Match expanded street depth
     const segmentLength = laneLineLength + laneLineGap;
     const numSegments = Math.floor(totalLength / segmentLength);
 
@@ -89,8 +91,10 @@ export class StreetEnvironment {
   }
 
   private createSidewalks(): void {
-    const { streetWidth, streetDepth, sidewalkHeight, curbHeight } = StyleGuide.environment;
-    const sidewalkWidth = 4;
+    const streetWidth = 30;
+    const streetDepth = 20;
+    const { sidewalkHeight, curbHeight } = StyleGuide.environment;
+    const sidewalkWidth = 5; // Wider sidewalks
     
     const sidewalkMaterial = CartoonMaterials.createToonMaterial(
       StyleGuide.colors.sidewalk
@@ -328,6 +332,110 @@ export class StreetEnvironment {
     });
   }
 
+  private createPlatforms(): void {
+    // Fire escape platforms on buildings
+    this.platformSystem.createPlatform(
+      new THREE.Vector3(-10, 3.5, 0),
+      new THREE.Vector3(4, 0.3, 3),
+      'solid',
+      0x444444
+    );
+    
+    this.platformSystem.createPlatform(
+      new THREE.Vector3(10, 3.5, 0),
+      new THREE.Vector3(4, 0.3, 3),
+      'solid',
+      0x444444
+    );
+    
+    // Jump-through awnings
+    this.platformSystem.createPlatform(
+      new THREE.Vector3(-5, 2.5, 2),
+      new THREE.Vector3(3, 0.2, 2),
+      'jumpthrough',
+      0x8b4513
+    );
+    
+    this.platformSystem.createPlatform(
+      new THREE.Vector3(5, 2.5, -2),
+      new THREE.Vector3(3, 0.2, 2),
+      'jumpthrough',
+      0x8b4513
+    );
+    
+    // Central elevated platform
+    this.platformSystem.createPlatform(
+      new THREE.Vector3(0, 4, 0),
+      new THREE.Vector3(6, 0.3, 3),
+      'solid',
+      0x555555
+    );
+    
+    // Side scaffolding
+    this.platformSystem.createPlatform(
+      new THREE.Vector3(-7, 1.8, 5),
+      new THREE.Vector3(3, 0.2, 2),
+      'jumpthrough',
+      0x8b6914
+    );
+    
+    this.platformSystem.createPlatform(
+      new THREE.Vector3(7, 1.8, -5),
+      new THREE.Vector3(3, 0.2, 2),
+      'jumpthrough',
+      0x8b6914
+    );
+  }
+  
+  private createAdditionalProps(): void {
+    // Dumpster that can be jumped on
+    const dumpsterGroup = new THREE.Group();
+    const dumpsterGeometry = new THREE.BoxGeometry(2.5, 1.5, 1.5);
+    const dumpsterMaterial = CartoonMaterials.createToonMaterial(0x2f4f2f);
+    const dumpster = new THREE.Mesh(dumpsterGeometry, dumpsterMaterial);
+    dumpster.position.y = 0.75;
+    dumpster.castShadow = true;
+    dumpster.receiveShadow = true;
+    dumpsterGroup.add(dumpster);
+    
+    // Dumpster lid
+    const lidGeometry = new THREE.BoxGeometry(2.6, 0.1, 1.6);
+    const lid = new THREE.Mesh(lidGeometry, dumpsterMaterial);
+    lid.position.set(0.3, 1.55, 0);
+    lid.rotation.z = -0.1;
+    dumpsterGroup.add(lid);
+    
+    dumpsterGroup.position.set(-8, 0.15, -7);
+    this.group.add(dumpsterGroup);
+    
+    // Create platform on dumpster
+    this.platformSystem.createPlatform(
+      new THREE.Vector3(-8, 1.6, -7),
+      new THREE.Vector3(2.5, 0.1, 1.5),
+      'solid',
+      0x2f4f2f
+    );
+    
+    // Street vendor cart
+    const cartGroup = new THREE.Group();
+    const cartBase = new THREE.BoxGeometry(2, 1.2, 1);
+    const cartMaterial = CartoonMaterials.createToonMaterial(0xcd853f);
+    const cart = new THREE.Mesh(cartBase, cartMaterial);
+    cart.position.y = 0.6;
+    cartGroup.add(cart);
+    
+    // Cart canopy
+    const canopyGeometry = new THREE.BoxGeometry(2.5, 0.1, 1.5);
+    const canopyMaterial = CartoonMaterials.createToonMaterial(0xff6347);
+    const canopy = new THREE.Mesh(canopyGeometry, canopyMaterial);
+    canopy.position.set(0, 1.8, 0);
+    cartGroup.add(canopy);
+    
+    cartGroup.position.set(9, 0.15, 6);
+    cartGroup.castShadow = true;
+    this.group.add(cartGroup);
+  }
+  
   public dispose(): void {
     // Clean up geometries and materials
     this.group.traverse((child) => {
@@ -339,6 +447,7 @@ export class StreetEnvironment {
       }
     });
     
+    this.platformSystem.dispose();
     this.scene.remove(this.group);
   }
 }
